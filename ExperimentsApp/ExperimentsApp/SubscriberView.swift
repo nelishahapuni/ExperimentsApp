@@ -14,6 +14,7 @@ class SubscriberViewModel: ObservableObject {
     init() {
         setupTimer()
         addTextFieldSubscriber()
+        addButtonSubscriber()
     }
     
     func addTextFieldSubscriber() {
@@ -46,6 +47,17 @@ class SubscriberViewModel: ObservableObject {
                 
             }
             .store(in: &cancellables) // store publisher in cancellables
+    }
+    
+    func addButtonSubscriber() {
+        $textIsValid
+            .combineLatest($count)
+            .sink { [weak self] isValid, count in
+                guard let self else { return }
+                
+                showButton = isValid && count >= 10
+            }
+            .store(in: &cancellables)
     }
 }
 
@@ -80,10 +92,18 @@ struct SubscriberView: View {
                     .padding(.trailing)
                 }
             Button(action: {
-                //showButton
+                print("Submit has been pressed")
             }, label: {
-                Text("Button".uppercased())
+                Text("Submit".uppercased())
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(height: 55)
+                    .frame(maxWidth: .infinity)
+                    .background(.blue)
+                    .cornerRadius(10)
+                    .opacity(vm.showButton ? 1.0 : 0.5)
             })
+            .disabled(!vm.showButton)
         }
         .padding()
     }
